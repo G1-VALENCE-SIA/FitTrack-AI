@@ -23,5 +23,5 @@ Route::middleware("auth:sanctum")->group(function () {
     });
 });
 
-// Exercise search and store routes
+// Exercise search and store route
 Route::get("/exercises/search", [ExerciseController::class, "search"]);
