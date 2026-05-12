@@ -2,8 +2,8 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\ExerciseController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ExerciseController;
 
 //Test route
 Route::get('/test', function () {
