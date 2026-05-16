@@ -5,7 +5,12 @@
 .env.production
 .phpactor.json
 .phpunit.result.cache
+<<<<<<< HEAD
 /.fleet
+=======
+/.codex
+/.cursor/
+>>>>>>> 1b9f51c390c37f4951a6ce92cccad3377deb8865
 /.idea
 /.nova
 /.phpunit.cache
@@ -14,11 +19,19 @@
 /auth.json
 /node_modules
 /public/build
+<<<<<<< HEAD
+=======
+/public/fonts-manifest.dev.json
+>>>>>>> 1b9f51c390c37f4951a6ce92cccad3377deb8865
 /public/hot
 /public/storage
 /storage/*.key
 /storage/pail
 /vendor
+<<<<<<< HEAD
+=======
+_ide_helper.php
+>>>>>>> 1b9f51c390c37f4951a6ce92cccad3377deb8865
 Homestead.json
 Homestead.yaml
 Thumbs.db

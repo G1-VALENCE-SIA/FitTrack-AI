@@ -5,3 +5,7 @@ use App\Http\Controllers\QuoteController;
 
 Route::get('/api/quotes/daily', [QuoteController::class, 'daily']);
 Route::post('/api/quotes/store', [QuoteController::class, 'store']);
+
+Route::get('/', function () {
+    return view('welcome');
+});

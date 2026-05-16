@@ -4,8 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+<<<<<<< HEAD
 return new class extends Migration
 {
+=======
+return new class extends Migration {
+>>>>>>> 1b9f51c390c37f4951a6ce92cccad3377deb8865
     /**
      * Run the migrations.
      */
@@ -17,6 +21,12 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+<<<<<<< HEAD
+=======
+            $table->integer('age')->nullable();
+            $table->float('weight')->nullable();
+            $table->float('height')->nullable();
+>>>>>>> 1b9f51c390c37f4951a6ce92cccad3377deb8865
             $table->rememberToken();
             $table->timestamps();
         });
