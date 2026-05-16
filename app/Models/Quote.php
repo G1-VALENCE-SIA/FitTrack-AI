@@ -8,6 +8,7 @@ class Quote extends Model
 {
     protected $fillable = [
         'quote',
-        'author'
+        'author',
+        'quote_date'
     ];
 }
