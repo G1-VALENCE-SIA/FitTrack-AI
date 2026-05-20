@@ -8,13 +8,13 @@ use App\Models\Exercise;
 class ExerciseService
 {
     protected array $muscleMap = [
-        'chest'   => 'pectorals',
-        'arms'    => 'biceps',
-        'triceps' => 'triceps',
-        'abs'     => 'abdominals',
-        'legs'    => 'quadriceps',
-        'back'    => 'lats',
-        'glutes'  => 'glutes',
+        'chest' => 'pectorals',
+        'arms' => 'biceps',
+        'shoulders' => 'delts',
+        'abs' => 'abdominals',
+        'legs' => 'quadriceps',
+        'back' => 'lats',
+        'glutes' => 'glutes',
     ];
 
     public function searchByMuscle(string $muscle): array
@@ -22,7 +22,7 @@ class ExerciseService
         $target = $this->muscleMap[strtolower($muscle)] ?? strtolower($muscle);
 
         $response = Http::withHeaders([
-            'X-RapidAPI-Key'  => env('EXERCISEDB_API_KEY'),
+            'X-RapidAPI-Key' => env('EXERCISEDB_API_KEY'),
             'X-RapidAPI-Host' => env('EXERCISEDB_API_HOST'),
         ])->get(env('EXERCISEDB_BASE_URL') . '/exercises/target/' . $target);
 
@@ -33,10 +33,13 @@ class ExerciseService
         $results = $response->json();
         $this->saveExercises($results, $target);
 
+        // Return DB records instead of raw API response so local id is visible
+        $saved = Exercise::where('muscle_group', $target)->get();
+
         return [
             'mapped_muscle' => $target,
-            'saved_count'   => count($results),
-            'results'       => $results,
+            'saved_count' => $saved->count(),
+            'results' => $saved,
         ];
     }
 
@@ -46,10 +49,10 @@ class ExerciseService
             Exercise::updateOrCreate(
                 ['api_exercise_id' => $exercise['id'] ?? null],
                 [
-                    'name'         => $exercise['name'] ?? null,
-                    'body_part'    => $exercise['bodyPart'] ?? null,
+                    'name' => $exercise['name'] ?? null,
+                    'body_part' => $exercise['bodyPart'] ?? null,
                     'muscle_group' => $target,
-                    'equipment'    => $exercise['equipment'] ?? null,
+                    'equipment' => $exercise['equipment'] ?? null,
                     'instructions' => is_array($exercise['instructions'] ?? null)
                         ? implode("\n", $exercise['instructions'])
                         : null,

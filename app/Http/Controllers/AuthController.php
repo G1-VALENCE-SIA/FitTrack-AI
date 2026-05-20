@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
+use App\Services\AuthService;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    public function __construct(protected AuthService $authService)
+    {
+    }
+
     public function register(Request $request)
     {
         $request->validate([
@@ -21,21 +23,11 @@ class AuthController extends Controller
             'height' => 'nullable|numeric',
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'age' => $request->age,
-            'weight' => $request->weight,
-            'height' => $request->height,
-        ]);
-
-        $token = $user->createToken("fittrack_token")->plainTextToken;
+        $data = $this->authService->register($request->all());
 
         return response()->json([
             "message" => "User registered successfully",
-            "user" => $user,
-            "token" => $token
+            ...$data
         ], 201);
     }
 
@@ -46,29 +38,52 @@ class AuthController extends Controller
             "password" => "required"
         ]);
 
-        $user = User::where("email", $request->email)->first();
+        try {
+            $data = $this->authService->login($request->all());
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json([
+                "message" => "Login successful",
+                ...$data
+            ]);
+        } catch (\Exception $e) {
             throw ValidationException::withMessages([
-                "email" => ["The provided credentials are incorrect."]
+                "email" => [$e->getMessage()]
             ]);
         }
+    }
 
-        $token = $user->createToken("fittrack_token")->plainTextToken;
+    public function profile(Request $request)
+    {
+        return response()->json($request->user());
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'email' => 'sometimes|required|string|email|unique:users,email,' . $user->id,
+            'password' => 'sometimes|required|string|min:6|confirmed',
+            'age' => 'sometimes|nullable|integer',
+            'weight' => 'sometimes|nullable|numeric',
+            'height' => 'sometimes|nullable|numeric',
+        ]);
+
+        $user = $this->authService->updateProfile($user, $request->all());
 
         return response()->json([
-            "message" => "Login successful",
-            "user" => $user,
-            "token" => $token
-        ], 200);
+            "message" => "Profile updated successfully",
+            "user" => $user
+        ]);
     }
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $this->authService->logout($request->user());
 
         return response()->json([
             "message" => "Logout successful"
-        ], 200);
+        ]);
     }
 }
