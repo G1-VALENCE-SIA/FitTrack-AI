@@ -19,42 +19,13 @@ class AuthController extends Controller
             'email' => 'required|string|email|unique:users',
             'password' => 'required|string|min:6|confirmed',
             'age' => 'nullable|integer',
+            'gender' => 'nullable|in:male,female,other',
             'weight' => 'nullable|numeric',
             'height' => 'nullable|numeric',
         ]);
 
         $data = $this->authService->register($request->all());
-
-        return response()->json([
-            "message" => "User registered successfully",
-            ...$data
-        ], 201);
-    }
-
-    public function login(Request $request)
-    {
-        $request->validate([
-            "email" => "required|email",
-            "password" => "required"
-        ]);
-
-        try {
-            $data = $this->authService->login($request->all());
-
-            return response()->json([
-                "message" => "Login successful",
-                ...$data
-            ]);
-        } catch (\Exception $e) {
-            throw ValidationException::withMessages([
-                "email" => [$e->getMessage()]
-            ]);
-        }
-    }
-
-    public function profile(Request $request)
-    {
-        return response()->json($request->user());
+        return $this->successResponse($data, 'User registered successfully', 201);
     }
 
     public function updateProfile(Request $request)
@@ -66,24 +37,40 @@ class AuthController extends Controller
             'email' => 'sometimes|required|string|email|unique:users,email,' . $user->id,
             'password' => 'sometimes|required|string|min:6|confirmed',
             'age' => 'sometimes|nullable|integer',
+            'gender' => 'sometimes|nullable|in:male,female,other',
             'weight' => 'sometimes|nullable|numeric',
             'height' => 'sometimes|nullable|numeric',
         ]);
 
         $user = $this->authService->updateProfile($user, $request->all());
+        return $this->successResponse($user, 'Profile updated successfully');
+    }
 
-        return response()->json([
-            "message" => "Profile updated successfully",
-            "user" => $user
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
         ]);
+
+        $data = $this->authService->login($request->all());
+        return $this->successResponse($data, 'Login successful');
+    }
+
+    public function profile(Request $request)
+    {
+        return $this->successResponse($request->user(), 'Profile retrieved');
     }
 
     public function logout(Request $request)
     {
         $this->authService->logout($request->user());
+        return $this->successResponse(null, 'Logout successful');
+    }
 
-        return response()->json([
-            "message" => "Logout successful"
-        ]);
+    public function deleteAccount(Request $request)
+    {
+        $this->authService->deleteAccount($request->user());
+        return $this->successResponse(null, 'Account deleted successfully');
     }
 }

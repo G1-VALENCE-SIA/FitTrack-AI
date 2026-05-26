@@ -20,7 +20,6 @@ class QuoteService
         $response = Http::withHeaders([
             'X-Api-Key' => env('QUOTES_API_KEY'),
         ])->get(env('QUOTES_BASE_URL'), [
-                    'category' => 'fitness',
         ]);
 
         if ($response->failed()) {

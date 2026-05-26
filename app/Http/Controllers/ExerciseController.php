@@ -16,22 +16,16 @@ class ExerciseController extends Controller
     public function search(Request $request)
     {
         if (!$request->query('muscle')) {
-            return response()->json([
-                'message' => 'Muscle parameter is required. Example: ?muscle=chest'
-            ], 400);
+            return $this->errorResponse('Muscle parameter is required. Example: ?muscle=chest', 400);
         }
 
-        try {
-            $data = $this->exerciseService->searchByMuscle($request->query('muscle'));
-            return response()->json(array_merge(['input_muscle' => $request->query('muscle')], $data));
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 500);
-        }
+        $data = $this->exerciseService->searchByMuscle($request->query('muscle'));
+        return $this->successResponse($data, 'Exercises retrieved');
     }
 
     public function show(int $id)
     {
-        $exercise = Exercise::findOrFail($id);
-        return response()->json($exercise);
+        $exercise = $this->exerciseService->getById($id);
+        return $this->successResponse($exercise, 'Exercise retrieved');
     }
 }

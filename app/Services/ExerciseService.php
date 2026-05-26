@@ -60,4 +60,10 @@ class ExerciseService
             );
         }
     }
+
+    public function getById(int $id): Exercise
+    {
+        $exercise = Exercise::findOrFail($id);
+        return $exercise;
+    }
 }

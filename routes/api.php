@@ -22,6 +22,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/profile', [AuthController::class, 'profile']);
     Route::put('/profile', [AuthController::class, 'updateProfile']);
+    Route::delete('/profile', [AuthController::class, 'deleteAccount']);
 
     // Exercise
     Route::get('/exercises/search', [ExerciseController::class, 'search']);
@@ -29,7 +30,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Workouts & logging
     Route::post('/workouts', [WorkoutController::class, 'store']);
+    Route::get('/workouts', [WorkoutController::class, 'index']);
     Route::get('/workouts/{id}', [WorkoutController::class, 'show']);
+    Route::put('/workouts/{id}', [WorkoutController::class, 'update']);
+    Route::delete('/workouts/{id}', [WorkoutController::class, 'destroy']);
     Route::post('/workouts/{id}/log', [WorkoutController::class, 'logSession']);
     Route::get('/logs', [WorkoutController::class, 'logs']);
 

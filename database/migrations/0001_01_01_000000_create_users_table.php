@@ -16,6 +16,7 @@ return new class extends Migration {
             $table->string('email')->unique();
             $table->string('password');
             $table->integer('age')->nullable();
+            $table->enum('gender', ['male', 'female', 'other'])->nullable(); 
             $table->float('weight')->nullable();
             $table->float('height')->nullable();
             $table->rememberToken();

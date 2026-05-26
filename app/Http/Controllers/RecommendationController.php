@@ -17,11 +17,7 @@ class RecommendationController extends Controller
             'goal' => 'required|in:lose,gain,maintain,muscle_gain',
         ]);
 
-        try {
-            $data = $this->recommendationService->generate(auth()->id(), $request->goal);
-            return response()->json($data);
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 500);
-        }
+        $data = $this->recommendationService->generate(auth()->id(), $request->goal);
+        return $this->successResponse($data, 'Recommendations generated');
     }
 }

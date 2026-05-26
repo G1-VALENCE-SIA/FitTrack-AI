@@ -14,6 +14,7 @@ class AuthService
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
             'age' => $data['age'] ?? null,
+            'gender' => $data['gender'] ?? null,
             'weight' => $data['weight'] ?? null,
             'height' => $data['height'] ?? null,
         ]);
@@ -22,8 +23,24 @@ class AuthService
 
         return [
             'user' => $user,
-            'token' => $token
+            'token' => $token,
         ];
+    }
+
+    public function updateProfile(User $user, array $data): User
+    {
+        $fillable = array_intersect_key([
+            'name' => $data['name'] ?? null,
+            'email' => $data['email'] ?? null,
+            'age' => $data['age'] ?? null,
+            'gender' => $data['gender'] ?? null,
+            'weight' => $data['weight'] ?? null,
+            'height' => $data['height'] ?? null,
+            'password' => isset($data['password']) ? Hash::make($data['password']) : null,
+        ], array_filter($data, fn($v) => $v !== null));
+
+        $user->update($fillable);
+        return $user->fresh();
     }
 
     public function login(array $data): array
@@ -49,18 +66,9 @@ class AuthService
         $user->currentAccessToken()->delete();
     }
 
-    public function updateProfile(User $user, array $data): User
+    public function deleteAccount(User $user): void
     {
-        $fillable = array_intersect_key([
-            'name' => $data['name'] ?? null,
-            'email' => $data['email'] ?? null,
-            'age' => $data['age'] ?? null,
-            'weight' => $data['weight'] ?? null,
-            'height' => $data['height'] ?? null,
-            'password' => isset($data['password']) ? Hash::make($data['password']) : null,
-        ], array_filter($data, fn($v) => $v !== null));
-
-        $user->update($fillable);
-        return $user->fresh();
+        $user->tokens()->delete();
+        $user->delete();
     }
 }
