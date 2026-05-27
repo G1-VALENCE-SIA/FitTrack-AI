@@ -2,11 +2,25 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
 use App\Models\WeatherLog;
+use App\Traits\ConsumesExternalService;
 
 class WeatherService
 {
+    use ConsumesExternalService;
+
+    private string $baseUrl;
+    private array $headers;
+
+    public function __construct()
+    {
+        $this->baseUrl = config('services.weather.base_url');
+        $this->headers = [
+            'X-RapidAPI-Key' => config('services.weather.api_key'),
+            'X-RapidAPI-Host' => config('services.weather.host'),
+        ];
+    }
+
     public function getWeather(int $userId, string $city): array
     {
         [$temperature, $condition, $latitude, $longitude] = $this->fetchWeatherByCity($city);
@@ -30,20 +44,17 @@ class WeatherService
 
     private function fetchWeatherByCity(string $city): array
     {
-        $response = Http::timeout(8)->withHeaders([
-            'X-RapidAPI-Key' => env('WEATHER_API_KEY'),
-            'X-RapidAPI-Host' => env('WEATHER_API_HOST'),
-        ])->get(env('WEATHER_BASE_URL'), [
-                    'city' => $city,
-                    'lang' => 'EN',
-                    'units' => 'metric',
-                ]);
-
-        if ($response->failed()) {
-            throw new \Exception('Failed to fetch weather data: ' . $response->body());
-        }
-
-        $data = $response->json();
+        $data = $this->performRequest(
+            'GET',
+            $this->baseUrl,
+            [
+                'city' => $city,
+                'lang' => 'EN',
+                'units' => 'metric',
+            ],
+            [],
+            $this->headers
+        );
 
         $temp = $data['main']['temp'] ?? null;
         $condition = $data['weather'][0]['main'] ?? null;

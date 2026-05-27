@@ -2,26 +2,37 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
 use App\Models\Food;
+use App\Traits\ConsumesExternalService;
 
 class NutritionService
 {
+    use ConsumesExternalService;
+
+    private string $baseUrl;
+    private array $headers;
+    public function __construct()
+    {
+        $this->baseUrl = config('services.edamam.base_url');
+        $this->headers = [
+            'X-RapidAPI-Key'  => config('services.edamam.api_key'),
+            'X-RapidAPI-Host' => config('services.edamam.api_host'),
+        ];
+    }
+
     public function searchFood(string $food): array
     {
-        $response = Http::withHeaders([
-            'X-RapidAPI-Key'  => env('EDAMAM_API_KEY'),
-            'X-RapidAPI-Host' => env('EDAMAM_API_HOST'),
-        ])->get(env('EDAMAM_BASE_URL'), [
-            'nutrition-type' => 'cooking',
-            'ingr'           => '100g ' . $food,
-        ]);
-
-        if ($response->failed()) {
-            throw new \Exception('Failed to fetch from Edamam API: ' . $response->body());
-        }
-
-        $data      = $response->json();
+        $data = $this->performRequest(
+            'GET',
+            $this->baseUrl,
+            [
+                'nutrition-type' => 'cooking',
+                'ingr' => '100g ' . $food,
+            ],
+            [],
+            $this->headers
+        );
+        
         $nutrients = $data['totalNutrients'] ?? [];
 
         $record = Food::updateOrCreate(

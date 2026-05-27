@@ -2,34 +2,47 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
 use App\Models\BmiRecord;
+use App\Traits\ConsumesExternalService;
 
 class BmiService
 {
+    use ConsumesExternalService;
+
+    private string $baseUrl;
+    private array $headers;
+
+    public function __construct()
+    {
+        $this->baseUrl = config('services.bmi.base_url');
+
+        $this->headers = [
+            'X-RapidAPI-Key' => config('services.bmi.api_key'),
+            'X-RapidAPI-Host' => config('services.bmi.host'),
+        ];
+    }
+
     public function calculate(int $userId, float $weight, float $height): array
     {
         // API expects height in METERS — user sends cm, so convert
         $heightInMeters = round($height / 100, 2);
 
-        $response = Http::withHeaders([
-            'X-RapidAPI-Key' => env('BMI_API_KEY'),
-            'X-RapidAPI-Host' => env('BMI_API_HOST'),
-        ])->get(env('BMI_BASE_URL'), [
-                    'weight' => $weight,        // kg
-                    'height' => $heightInMeters // meters e.g. 1.75
-                ]);
+        $data = $this->performRequest(
+            'GET',
+            $this->baseUrl,
+            [
+                'weight' => $weight,
+                'height' => $heightInMeters,
+            ],
+            [],
+            $this->headers
+        );
 
-        if ($response->failed()) {
-            throw new \Exception('Failed to fetch from BMI API: ' . $response->body());
-        }
-
-        $data = $response->json();
-
-        // body-mass-index-bmi-calculator returns: bmi, health, healthy_bmi_range
+        // fallback if API doesn't return expected fields
         $bmiValue = $data['bmi'] ?? round($weight / ($heightInMeters ** 2), 2);
         $category = $data['health'] ?? $this->classifyBmi($bmiValue);
 
+        //save to DB
         $record = BmiRecord::create([
             'user_id' => $userId,
             'bmi_value' => $bmiValue,

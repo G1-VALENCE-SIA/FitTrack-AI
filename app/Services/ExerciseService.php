@@ -2,11 +2,18 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
 use App\Models\Exercise;
+use App\Traits\ConsumesExternalService;
+
 
 class ExerciseService
 {
+    use ConsumesExternalService;
+
+    private string $baseUrl;
+    private array $headers;
+
+    // Map common muscle group names to API-specific target muscle names
     protected array $muscleMap = [
         'chest' => 'pectorals',
         'arms' => 'biceps',
@@ -17,20 +24,28 @@ class ExerciseService
         'glutes' => 'glutes',
     ];
 
+    public function __construct()
+    {
+        $this->baseUrl = config('services.exercise_db.base_url');
+
+        $this->headers = [
+            'X-RapidAPI-Key' => config('services.exercise_db.api_key'),
+            'X-RapidAPI-Host' => config('services.exercise_db.host'),
+        ];
+    }
+
     public function searchByMuscle(string $muscle): array
     {
         $target = $this->muscleMap[strtolower($muscle)] ?? strtolower($muscle);
 
-        $response = Http::withHeaders([
-            'X-RapidAPI-Key' => env('EXERCISEDB_API_KEY'),
-            'X-RapidAPI-Host' => env('EXERCISEDB_API_HOST'),
-        ])->get(env('EXERCISEDB_BASE_URL') . '/exercises/target/' . $target);
+        $results = $this->performRequest(
+            'GET',
+            $this->baseUrl . '/exercises/target/' . $target,
+            [],
+            [],
+            $this->headers
+        );
 
-        if ($response->failed()) {
-            throw new \Exception('Failed to fetch from ExerciseDB: ' . $response->body());
-        }
-
-        $results = $response->json();
         $this->saveExercises($results, $target);
 
         // Return DB records instead of raw API response so local id is visible
